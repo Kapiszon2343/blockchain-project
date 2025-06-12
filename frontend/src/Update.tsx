@@ -14,6 +14,9 @@ import { parseAbiItem } from 'viem'
 import { keccak256, toUtf8Bytes } from 'ethers'
 import { sign } from '@noble/secp256k1'
 
+import * as secp from '@noble/secp256k1';
+import { hexlify } from "ethers";
+
 function hashContent(content: string): string {
   const contentBytes = toUtf8Bytes(content)
   const contentHash = keccak256(contentBytes)
@@ -29,6 +32,12 @@ async function signHash(privateKey: string, hash: string): Promise<string> {
 }
 
 export function Update() {
+  const authorPrivateKey1 = secp.utils.randomPrivateKey();
+  const authorPublicKey1 = secp.getPublicKey(authorPrivateKey1);
+  console.log('authorPrivateKey1: ', hexlify(authorPrivateKey1))
+  console.log('authorPublicKey1: ', hexlify(authorPublicKey1))
+
+
   const { data: hash, error: errorWrite, isPending: isPendingWrite, writeContract } = useWriteContract()
   const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
@@ -51,7 +60,7 @@ export function Update() {
           fromBlock: receipt.blockNumber,
           toBlock: receipt.blockNumber,
           event: parseAbiItem(
-            'event Publish(address owner, uint256 tokenId, string title, bytes authorPublicKey)'
+            'event NewChapter(uint256 tokenId, uint64 chapterId, bytes hash, bytes signature)'
           ),
         })
 
@@ -75,7 +84,7 @@ export function Update() {
     const tokenId = formData.get('tokenId') as string 
     const chapterId = Number(formData.get('chapterId') as string)
     const content = formData.get('content') as string 
-    const authorPrivateKey = formData.get('tokenId') as string 
+    const authorPrivateKey = formData.get('privateKey') as string 
     const authorPrivateKeyHex = authorPrivateKey.startsWith('0x') 
       ? authorPrivateKey 
       : '0x' + authorPrivateKey;
@@ -87,18 +96,44 @@ export function Update() {
 
     const isValidHex = /^0x[0-9a-fA-F]+$/.test(authorPrivateKeyHex);
     if (!isValidHex) {
-      alert('Invalid public key format. Must be a hex string.');
+      alert('Invalid private key format. Must be a hex string.');
       return;
     }
 
     const hash = hashContent(content)
-    const signature = signHash(authorPrivateKeyHex, hash)
+    console.log("priavte key: ", authorPrivateKeyHex)
+    const signature = await signHash(authorPrivateKeyHex, hash)
 
     writeContract({
       ...wagmiContractConfig,
-      functionName: 'publish',
+      functionName: 'update',
       args: [tokenId, BigInt(chapterId), hash, signature],
     })
+
+    const payload = {
+      tokenId: tokenId.toString(), 
+      chapterId, 
+      content, 
+      signature
+    }
+    try {
+      const res = await fetch('http://localhost:3001/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        console.log("Submitted chapter")
+      } else {
+        console.error(data.error)
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -125,7 +160,7 @@ export function Update() {
         />
         <input
           type="text"
-          name="private key"
+          name="privateKey"
           placeholder="0x04c5919f1f5f7a3b... (private key)"
           required
         />

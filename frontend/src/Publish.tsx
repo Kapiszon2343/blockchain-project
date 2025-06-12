@@ -24,12 +24,14 @@ export function Publish() {
   useEffect(() => {
     async function getLogs() {
       if (!receipt) return
+      console.log("Got receipt")
 
       if (publicClient === undefined) {
         console.log("Public client is undefined")
         return
       }
       try {
+        console.log("Getting logs from block:", receipt.blockNumber)
         const logs = await publicClient.getLogs({
           address: wagmiContractConfig.address,
           fromBlock: receipt.blockNumber,
@@ -38,12 +40,45 @@ export function Publish() {
             'event Publish(address owner, uint256 tokenId, string title, bytes authorPublicKey)'
           ),
         })
-
+        console.log("Fetched logs: ", logs);
+        
         if (logs.length > 0) {
+          console.log(`For logs: ${logs[0].args}`)
           const tokenId = logs[0].args.tokenId
-          if (tokenId !== undefined)
+          const title = logs[0].args.title
+          const authorPublicKeyHex = logs[0].args.authorPublicKey
+          if (tokenId !== undefined) {
+            const payload = {
+              tokenId: tokenId.toString(), 
+              title, 
+              authorPublicKey: authorPublicKeyHex,
+            }
+
+            try {
+              const res = await fetch('http://localhost:3001/publish', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+              })
+
+              const data = await res.json()
+              if (res.ok) {
+                setMintedTokenId(tokenId)
+              } else {
+                console.error(data.error)
+              }
+            } catch (err) {
+              console.error(err)
+            }
+
             setMintedTokenId(tokenId)
+          }
           console.log('Minted tokenId:', tokenId)
+        }
+        else {
+          console.log("Log lenght 0")
         }
       } catch (err) {
         console.error('Failed to parse logs:', err)
