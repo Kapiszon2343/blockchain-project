@@ -13,7 +13,7 @@ db.serialize(() => {
   `)
   db.run(`
     CREATE TABLE IF NOT EXISTS chapters (
-      token_id INTEGER PRIMARY KEY NOT NULL,
+      token_id INTEGER NOT NULL,
       chapter_id INTEGER NOT NULL,
       content TEXT,
       signature TEXT NOT NULL,

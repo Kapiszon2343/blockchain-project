@@ -9,15 +9,15 @@ app.use(express.json())
 interface PublishRequest {
   tokenId: number
   title: string
-  publicKey: string
+  authorPublicKey: string
 }
 
 app.post('/publish', (req: Request, res: Response) => {
-  const { tokenId, title, publicKey } = req.body as PublishRequest
-
+  const { tokenId, title, authorPublicKey } = req.body as PublishRequest
+  console.log("Adding to db: ", req.body);
   db.run(
     'INSERT INTO publications (token_id, title, public_key) VALUES (?, ?, ?)',
-    [tokenId, title, publicKey],
+    [tokenId, title, authorPublicKey],
     function (err: Error | null) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -27,11 +27,11 @@ app.post('/publish', (req: Request, res: Response) => {
   )
 })
 
-app.post('/publish', (req: Request, res: Response) => {
+app.post('/update', (req: Request, res: Response) => {
   const { tokenId, chapterId, content, signature } = req.body
 
   db.run(
-    'INSERT INTO publications (token_id, title, public_key) VALUES (?, ?, ?)',
+    'INSERT INTO chapters (token_id, chapter_id, content, signature) VALUES (?, ?, ?, ?)',
     [tokenId, chapterId, content, signature],
     function (err: Error | null) {
       if (err) {
@@ -44,6 +44,15 @@ app.post('/publish', (req: Request, res: Response) => {
 
 app.get('/publications', (req: Request, res: Response) => {
   db.all('SELECT * FROM publications', [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message })
+    }
+    res.json(rows)
+  })
+})
+
+app.get('/chapters', (req: Request, res: Response) => {
+  db.all('SELECT * FROM chapters', [], (err, rows) => {
     if (err) {
       return res.status(500).json({ error: err.message })
     }
