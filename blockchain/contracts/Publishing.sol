@@ -26,22 +26,18 @@ contract Publishing is IERC721 {
     mapping(bytes4 => bool) _supportedInterfaces;
 
     mapping(uint256 => string) public titles;
-    mapping(uint256 => bytes) public authorPublicKey;
-    mapping(uint256 => mapping(uint64 => bytes)) public chapterSignatures;
     mapping(uint256 => mapping(uint64 => bytes)) public chapterHash;
     mapping(uint256 => mapping(uint64 => uint256)) public chapterTimestamp;
 
     event Publish(
         address owner, 
         uint256 tokenId, 
-        string title, 
-        bytes authorPublicKey
+        string title
     );
     event NewChapter(
         uint256 tokenId,
         uint64 chapterId,
-        bytes hash,
-        bytes signature
+        bytes hash
     );
 
     constructor() {
@@ -213,19 +209,17 @@ contract Publishing is IERC721 {
     }
 
     function publish(
-        string calldata newTitle, 
-        bytes calldata newAuthorPublicKey
+        string calldata newTitle
     ) external returns (uint256 tokenId) {
         uint256 newTokenId = _totalSupply;
         _totalSupply += 1;
 
         titles[newTokenId] = newTitle;
-        authorPublicKey[newTokenId] = newAuthorPublicKey;
         _tokenOwner[newTokenId] = msg.sender;
         _balances[msg.sender] += 1;
         _tokenApproval[tokenId] = address(0);
 
-        emit Publish(msg.sender, newTokenId, newTitle, newAuthorPublicKey);
+        emit Publish(msg.sender, newTokenId, newTitle);
 
         return newTokenId;
     }
@@ -233,17 +227,15 @@ contract Publishing is IERC721 {
     function publishChapter(
         uint256 tokenId,
         uint64 chapterId,
-        bytes calldata hash,
-        bytes calldata signature
+        bytes calldata hash
     ) external {
         require(_tokenOwner[tokenId] == msg.sender
             || _accountApproval[_tokenOwner[tokenId]][msg.sender]
             || _tokenApproval[tokenId] == msg.sender); 
 
         chapterHash[tokenId][chapterId] = hash;
-        chapterSignatures[tokenId][chapterId] = signature;
         chapterTimestamp[tokenId][chapterId] = block.timestamp;
 
-        emit NewChapter(tokenId, chapterId, hash, signature);
+        emit NewChapter(tokenId, chapterId, hash);
     }
 }

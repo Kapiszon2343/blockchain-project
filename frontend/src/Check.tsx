@@ -13,7 +13,7 @@ import { wagmiContractConfig } from './contracts'
 import { parseAbiItem } from 'viem'
 import { type WriteContractParameters } from 'wagmi/actions'
 
-export function Publish() {
+export function Check() {
   const { data: hash, error: errorWrite, isPending: isPendingWrite, writeContract } = useWriteContract()
   const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({

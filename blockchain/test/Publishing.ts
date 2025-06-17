@@ -54,14 +54,12 @@ describe("Publishing", function () {
   });
 
   const titles1 = ['title1'];
-  const authorPrivateKey1 = secp.utils.randomPrivateKey();
-  const authorPublicKey1 = secp.getPublicKey(authorPrivateKey1);
   async function deployFreshContractWithPublishing() {
     const { contract, owner, other1, other2 } = await loadFixture(deployFreshContract);
 
     const tokenId = [];
     for (let i = 0; i < titles1.length; i++) {
-      const tx = await contract.connect(other1).publish(titles1[i], authorPublicKey1);
+      const tx = await contract.connect(other1).publish(titles1[i]);
       const receipt = await tx.wait();
       expect(receipt, "Publish function could not be called").to.exist;
 
@@ -81,7 +79,6 @@ describe("Publishing", function () {
 
       expect(publishEvent.args?.owner).to.equal(other1.address)
       expect(publishEvent.args?.title).to.equal(titles1[i])
-      expect(publishEvent.args?.authorPublicKey).to.equal(hexlify(authorPublicKey1))
       tokenId.push(publishEvent.args?.tokenId)
     }
 
@@ -116,10 +113,9 @@ describe("Publishing", function () {
 
       for (let i = 0; i < chapterContent1.length; i++) {
         const hash = getTextHash(chapterContent1[0][i])
-        const signature = await sign(hash, authorPrivateKey1);
-        expect(await contract.connect(other1).publishChapter(tokenId[0], i, hash, signature))
+        expect(await contract.connect(other1).publishChapter(tokenId[0], i, hash))
           .to.emit(contract, 'NewChapter')
-          .withArgs(tokenId[0], i, hash, signature);
+          .withArgs(tokenId[0], i, hash);
       }
     });
 

@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "biome check .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preinstall": "npx npm-force-resolutions"
   },
   "dependencies": {
-    "@noble/secp256k1": "^2.2.3",
+    "@noble/secp256k1": "^1.7.2",
     "@tanstack/react-query": "5.45.1",
     "ethers": "^6.14.3",
     "react": "^18.3.1",
@@ -30,6 +31,7 @@
     "@wagmi/cli": "latest",
     "buffer": "^6.0.3",
     "dotenv": "^16.5.0",
+    "npm-force-resolutions": "^0.0.10",
     "playwright": "^1.52.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",

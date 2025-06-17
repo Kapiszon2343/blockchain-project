@@ -1,9 +1,9 @@
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { Calc } from './calc'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Publish } from './Publish'
 import { Home } from './Home'
 import { Update } from './Update'
+import { Check } from './Check'
 
 function App() {
   const account = useAccount()
@@ -51,7 +51,7 @@ function App() {
             <Route path="/" element={<Home />}/>
             <Route path="/Publish" element={<Publish />}/>
             <Route path="/Update" element={<Update />}/>
-            <Route path="/Check" element={<Home />}/>
+            <Route path="/Check" element={<Check />}/>
           </Routes>
         </Router>
       </div>

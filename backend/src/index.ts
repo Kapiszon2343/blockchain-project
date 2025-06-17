@@ -13,11 +13,11 @@ interface PublishRequest {
 }
 
 app.post('/publish', (req: Request, res: Response) => {
-  const { tokenId, title, authorPublicKey } = req.body as PublishRequest
+  const { tokenId, title } = req.body as PublishRequest
   console.log("Adding to db: ", req.body);
   db.run(
-    'INSERT INTO publications (token_id, title, public_key) VALUES (?, ?, ?)',
-    [tokenId, title, authorPublicKey],
+    'INSERT INTO publications (token_id, title) VALUES (?, ?)',
+    [tokenId, title],
     function (err: Error | null) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -28,11 +28,11 @@ app.post('/publish', (req: Request, res: Response) => {
 })
 
 app.post('/update', (req: Request, res: Response) => {
-  const { tokenId, chapterId, content, signature } = req.body
+  const { tokenId, chapterId, content } = req.body
 
   db.run(
-    'INSERT INTO chapters (token_id, chapter_id, content, signature) VALUES (?, ?, ?, ?)',
-    [tokenId, chapterId, content, signature],
+    'INSERT INTO chapters (token_id, chapter_id, content) VALUES (?, ?, ?)',
+    [tokenId, chapterId, content],
     function (err: Error | null) {
       if (err) {
         return res.status(500).json({ error: err.message })

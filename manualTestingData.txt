@@ -1,2 +1,0 @@
-authorPublicKey1: 0x03c02bd0dd30b0e918afd5244cd9924f5df67b5e9dab4d70a36f41bbc8e4facd68
-authorPrivateKey1: 0xa4463ed08b15e020ea57521f612b169c24b049b9aa1937355f0f42bbc177b6b5
