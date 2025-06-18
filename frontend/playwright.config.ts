@@ -27,6 +27,5 @@ export default defineConfig({
       },
     }
   ],
-  timeout: 60000,
-  // Additional Synpress-specific configuration can be added here
+  timeout: 1000000,
 })

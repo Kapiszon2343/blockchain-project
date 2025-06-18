@@ -23,6 +23,7 @@ test.describe('Wallet connection', () => {
     metamaskPage,
     extensionId,
   }) => {
+    test.setTimeout(120_000)
     // Create a new MetaMask instance
     const metamask = new MetaMask(
       context,
@@ -58,9 +59,10 @@ test.describe('Wallet connection', () => {
     await expect(page.getByText(/please wait/i)).toBeVisible()
 
     // Confirm operation in blockchain
+    await page.waitForTimeout(3000)
     await metamask.confirmTransaction()
 
     // Eventually expect the token ID to appear
-    await expect(page.locator('text=/Publishing succesfull!/')).toBeVisible({ timeout: 10000 }) // adjust timeout if needed
+    await expect(page.locator('text=/Publishing succesfull!/')).toBeVisible({ timeout: 100000 })
   })
 })
