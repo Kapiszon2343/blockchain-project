@@ -65,8 +65,9 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run frontend (Synpress) tests
-        run: npx synpress
-        run: npx playwright test
+        run: |
+          npx synpress
+          npx playwright test
 
       - name: Upload Playwright Report
         if: always()
