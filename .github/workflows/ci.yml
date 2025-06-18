@@ -81,12 +81,12 @@ jobs:
           cd ../blockchain
           npx hardhat node &
 
-      - name: Start frontend dev server
-        working-directory: frontend
-        run: |
+          # Start frontend
+          cd ../frontend
           npm run dev &
 
       - name: Wait for backend and blockchain
+        working-directory: frontend
         run: |
           npx wait-on --timeout 60000 --httpTimeout 10000 http-get://127.0.0.1:3001
           npx wait-on --timeout 60000 --httpTimeout 10000 http-get://localhost:5173
