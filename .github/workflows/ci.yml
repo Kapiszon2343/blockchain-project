@@ -14,11 +14,17 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npm test
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm test
 
   test-blockchain:
     runs-on: ubuntu-latest
@@ -27,48 +33,68 @@ jobs:
         working-directory: blockchain
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npx hardhat test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run Hardhat tests
+        run: npx hardhat test
 
   test-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
 
-      # install all three projects
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Install frontend deps
-        run: cd frontend && npm ci
-      - name: Install backend deps
-        run: cd backend && npm ci
-      - name: Install blockchain deps
-        run: cd blockchain && npm ci
+        working-directory: frontend
+        run: npm ci
 
-      # install Playwright browsers
       - name: Install Playwright deps
-        run: cd frontend && npx playwright install --with-deps
+        working-directory: frontend
+        run: npx playwright install --with-deps
 
-      # start all services
-      - name: Start services
-        run: |
-          cd backend && npm run start &    # backend on 3001
-          cd ../blockchain && npx hardhat node &     # node on 8545
-          cd ../frontend && npm run dev &    # frontend on 5173
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
 
-      # wait for endpoints
-      - name: Wait for services to be ready
-        run: |
-          npx wait-on --timeout 60000 http://127.0.0.1:3001
-          npx wait-on --timeout 60000 tcp:127.0.0.1:8545
-          npx wait-on --timeout 60000 http://127.0.0.1:5173
+      - name: Install blockchain deps
+        working-directory: blockchain
+        run: npm ci
 
-      # run tests
-      - name: Run frontend (Synpress & Playwright) tests
+      - name: Start backend and blockchain
         run: |
-          cd frontend
+          # Start backend
+          cd backend
+          npm run start &
+
+          # Start blockchain
+          cd ../blockchain
+          npx hardhat node &
+
+      - name: Start frontend dev server
+        working-directory: frontend
+        run: |
+          npm run dev &
+
+      - name: Wait for backend and blockchain
+        run: |
+          npx wait-on --timeout 60000 --httpTimeout 10000 http-get://127.0.0.1:3001
+          npx wait-on --timeout 60000 --httpTimeout 10000 http-get://localhost:5173
+          npx wait-on --timeout 60000 --httpTimeout 10000 tcp:127.0.0.1:8545
+
+      - name: Run frontend (Synpress & Playwright) tests with xvfb
+        working-directory: frontend
+        run: |
           xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npx synpress
           xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npx playwright test
 
@@ -78,3 +104,4 @@ jobs:
         with:
           name: playwright-report
           path: frontend/playwright-report/
+
