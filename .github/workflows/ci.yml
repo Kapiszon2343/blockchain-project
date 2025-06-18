@@ -100,6 +100,13 @@ jobs:
       - name: Wait extra for frontend render
         run: sleep 20
 
+      - name: ignition
+        working-directory: blockchain
+        run: npx hardhat ignition deploy ignition/modules/Publishing.ts --reset --network localhost
+
+      - name: Another wait
+        run: sleep 10
+
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         working-directory: frontend
         run: |
