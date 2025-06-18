@@ -17,7 +17,7 @@ test.describe('Wallet connection', () => {
     await expect(page).toHaveTitle(/Create Wagmi/);
   });
   // Define a basic test case
-  test('should connect wallet to the MetaMask Test Dapp', async ({
+  test('Whole interaction', async ({
     context,
     page,
     metamaskPage,
@@ -51,7 +51,8 @@ test.describe('Wallet connection', () => {
     await expect(page).toHaveURL(/.*\/Publish/)
 
     // Fill in the title field
-    await page.getByPlaceholder('title').fill('Test')
+    const title = 'Test'
+    await page.getByPlaceholder('title').fill(title)
 
     // Click the Publish button
     await page.getByRole('button', { name: 'Publish' }).click()
@@ -63,7 +64,56 @@ test.describe('Wallet connection', () => {
     await page.waitForTimeout(3000)
     await metamask.confirmTransaction()
 
-    // Eventually expect the token ID to appear
-    await expect(page.locator('text=/Publishing succesfull!/')).toBeVisible({ timeout: 100000 })
+    // Wait for the confirmation message to appear
+    const confirmation = await page.locator('text=/Publishing succesfull! Your token id is: \\d+/')
+    await expect(confirmation).toBeVisible({ timeout: 10000 })
+
+    // Extract the number from the message
+    const text = await confirmation.textContent()
+    const tokenId = text?.match(/Publishing succesfull! Your token id is: (\d+)/)?.[1]
+
+    expect(tokenId).toBeDefined()
+
+    await page.goto('/')
+
+    // Click link to update
+    await page.getByRole('link', { name: 'Expand your story with new chapters' }).click()
+    await expect(page).toHaveURL(/.*\/Update/)
+
+    // Fill in chapter details
+    await page.getByPlaceholder('token Id').fill(tokenId as string)
+    await page.getByPlaceholder('chapter number').fill('0')
+    const content = 'prologue'
+    await page.getByPlaceholder('chapter content').fill(content)
+
+    await page.getByRole('button', { name: 'Publish' }).click()
+
+    // Wait for confirmation (assumes blockchain & backend work in dev)
+    await expect(page.getByText(/please wait/i)).toBeVisible()
+
+    // Confirm operation in blockchain
+    await page.waitForTimeout(3000)
+    await metamask.confirmTransaction()
+
+    const chapterConfirmation = page.getByText('Chapter published succesfully')
+    await expect(chapterConfirmation).toBeVisible({ timeout: 10000 })
+
+    await page.goto('/')
+
+    // Click link to check
+    await page.getByRole('link', { name: 'Check existing text' }).click()
+    await expect(page).toHaveURL(/.*\/Check/)
+
+    // Fill in chapter details
+    await page.getByPlaceholder('content to check').fill(content)
+
+    await page.getByRole('button', { name: 'Check for plagiarism' }).click()
+
+    // Wait for the result section to appear
+    await expect(page.getByText('Similar Chapters Found:')).toBeVisible({ timeout: 10_000 })
+
+    // Check that the title appears in the results
+    const titleRegex = new RegExp(`${title}\\s+—\\s+Chapter\\s+\\d+\\s+\\(Token ID: \\d+\\)`)
+    await expect(page.getByText(titleRegex).first()).toBeVisible({ timeout: 10000 })
   })
 })
