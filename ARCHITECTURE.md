@@ -71,8 +71,6 @@ direction RL
 
         class Publishing {
             +mapping[uint256 => string] titles
-            +mapping[uint256 => bytes] authorPublicKey
-            +mapping[uint256 => mapping[uint64 => bytes]] chapterSignatures
             +mapping[uint256 => mapping[uint64 => bytes]] chapterHash
             +mapping[uint256 => mapping[uint64 => uint256]] chapterTimestamp 
 
@@ -90,15 +88,13 @@ kontrakt publishing udostępnia publicznie 5 zmiennych i 2 funkcje:
 | Nazwa    | format | limity | opis   | 
 |---------|--------|------|--------|
 | `titles` | `map[tokenId -> title]` | N/A | Lista tytułów publikacji w zależności od id tokenów. |
-| `authorPublicKey` | `map[tokenId -> publicKey]` | N/A | Lista kluczy publicznych powiązanych z publikacjami w zależności od id tokenów. |
-| `chapterSignatures` | `map[tokenId -> map[chapterId -> signature]]` |  chapterId < $10^{18}$ | Lista podpisów rozdziałów w zależności id tokenów i numerów rozdziałów. Numery rozdziałów wybrane przez autora. |
 | `chapterHash` | `map[tokenId -> map[chapterId -> hash]]` | chapterId < $10^{18}$ | Hashe treści rozdziałów w zależności od id tokenów i numerów rozdziałów. Numery rozdziałów wybrane przez autora. |
 | `chapterTimestamp` | `map[tokenId -> map[chapterId -> timestamp]]` | chapterId < $10^{18}$ | Daty publikacji rozdziałów w zależności od id tokenów i numerów rozdziałów. Podane w formie timestampu unixa (sekund od 1 stycznia 1970). Numery rozdziałów wybrane przez autora. |
 ### Funkcje
 - **publish**
-  Wywoływana przez autora, generuje i zawraca token nowej publikacji. Przyjmuje tytuł nowej publikacji i powiązany z nią klucz publiczny do weryfikacji podpisów. Generuje nowy token, zwraca go autorowi i aktualizuje [titles] i [authorPublicKey] dla nowo wygenerowanego tokenu podanymi danymi.
+  Wywoływana przez autora, generuje i zawraca token nowej publikacji. Przyjmuje tytuł nowej publikacji. Generuje nowy token, zwraca go autorowi i aktualizuje [titles] dla nowo wygenerowanego tokenu podanymi danymi.
 - **publishChapter**
-  Wywoływana przez autora, dodaje nowy rozdział do istniejącej publikacji. Przyjmuje token powiązany z aktualizowaną publikacją, numer dodawanego rozdziału (jak wyżej), hash zawartości dodawanego rozdziału (w formie stringa) oraz podpis dodawanego rozdziału (w formie stringa).
+  Wywoływana przez autora, dodaje nowy rozdział do istniejącej publikacji. Przyjmuje token powiązany z aktualizowaną publikacją, numer dodawanego rozdziału (jak wyżej) oraz hash zawartości dodawanego rozdziału (w formie stringa).
 
 
 # Interakcje
@@ -168,7 +164,7 @@ sequenceDiagram
   Przeglądarka ->> Użytkownik: Czyta id nowej publikacji
 ```
 
-Autor chce opublikować nową publikację. Najpierw się loguje, a następnie musi podać tytuł oraz klucz publiczny, który będzie używać do podpisywania rozdziałów w przyszłości. Po podaniu, zatwierdzeniu danych i potwierdzeniu operacji w metamasku musi zaczekać na blockchain, aż otrzyma potwierdzenie zarejestrowania nowej publikacji oraz powiązany z nią token.
+Autor chce opublikować nową publikację. Najpierw się loguje, a następnie musi podać tytuł nowo publikowanej pracy. Po podaniu, zatwierdzeniu danych i potwierdzeniu operacji w metamasku musi zaczekać na blockchain, aż otrzyma potwierdzenie zarejestrowania nowej publikacji oraz powiązany z nią token.
 
 ## Nowy rozdział
 ```mermaid
@@ -197,7 +193,7 @@ sequenceDiagram
   Przeglądarka ->> Użytkownik: Wyświetla potwierdzenie dodania nowego rozdziału
 ```
 
-Autor chce opublikować nowy rozdział do pisanej przez niego publikacji. Musi się on zalogować, a następnie podać aplikacji tokenId publikacji, do której chce dodać rozdział, treść samego rozdziału, oraz podpis tego rozdziału. Po zatwierdzeniu danych i potwierdzeniu operacji w metamasku może zamknąć stronę wcześniej lub zaczekać na potwierdzenie z blockchaina, że rozdział został dodany.
+Autor chce opublikować nowy rozdział do pisanej przez niego publikacji. Musi się on zalogować, a następnie podać aplikacji tokenId publikacji, do której chce dodać rozdział i treść samego rozdziału. Po zatwierdzeniu danych i potwierdzeniu operacji w metamasku może zamknąć stronę wcześniej lub zaczekać na potwierdzenie z blockchaina, że rozdział został dodany.
 
 ## Sprawdź plagiat
 ```mermaid
@@ -267,7 +263,7 @@ Użytkownik chce sprawdzić, czy posiadana przez niego treść publikacji już z
 
 ---
 
-### Szacowanie czasowe – metoda CRUD
+### Szacowanie czasowe
 
 | Komponent / Kontrakt      | Operacja                         | Czas [h] |
 |---------------------------|----------------------------------|----------|
