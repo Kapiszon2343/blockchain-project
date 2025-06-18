@@ -44,25 +44,23 @@ test.describe('Wallet connection', () => {
 
     await expect(page.locator('text=status: connected')).toBeVisible();
 
-    // Additional test steps can be added here, such as:
-    // - Sending transactions
-    // - Interacting with smart contracts
-    // - Testing dapp-specific functionality
+    // Click link to publish
+    await page.getByRole('link', { name: 'Publish new story' }).click()
+    await expect(page).toHaveURL(/.*\/Publish/)
 
-    const fixButton = page.getByRole('button', { name: 'Fix Value' });
-    await fixButton.click();
+    // Fill in the title field
+    await page.getByPlaceholder('title').fill('Test')
+
+    // Click the Publish button
+    await page.getByRole('button', { name: 'Publish' }).click()
+
+    // Wait for confirmation (assumes blockchain & backend work in dev)
+    await expect(page.getByText(/please wait/i)).toBeVisible()
+
+    // Confirm operation in blockchain
     await metamask.confirmTransaction()
 
-    await page.getByText('Transaction confirmed.').waitFor({ timeout: 40_000 })
-
-    const fixed = await page.locator('h2:has-text("Current Value: 27")').textContent()
-
-    const doubleButton = page.getByRole('button', { name: 'Double Value' });
-    await doubleButton.click();
-    await metamask.confirmTransaction()
-
-    await page.getByText('Transaction confirmed.').waitFor({ timeout: 40_000 })
-
-    const doubled = await page.locator('h2:has-text("Current Value: 54")').textContent()
+    // Eventually expect the token ID to appear
+    await expect(page.locator('text=/Publishing succesfull!/')).toBeVisible({ timeout: 10000 }) // adjust timeout if needed
   })
 })
