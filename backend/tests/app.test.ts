@@ -1,8 +1,5 @@
 import request from 'supertest'
-import express from 'express'
-import cors from 'cors'
 import db from '../src/db'
-import stringSimilarity from 'string-similarity'
 
 // Importuj app z osobnego pliku zamiast odpalać serwer w teście
 import { app } from '../src/app'
@@ -44,5 +41,13 @@ describe('API tests', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.matches.length).toBeGreaterThan(0)
     expect(res.body.matches[0]).toHaveProperty('similarity')
+  })
+
+  it('POST /check_plagiarism should find no matches', async () => {
+    const res = await request(app).post('/check_plagiarism').send({
+      text: 'nothing'
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.body.matches.length).toBe(0)
   })
 })
