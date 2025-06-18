@@ -97,6 +97,9 @@ jobs:
           npx wait-on --timeout 60000 --httpTimeout 10000 http-get://localhost:5173
           npx wait-on --timeout 60000 --httpTimeout 10000 tcp:127.0.0.1:8545
 
+      - name: Wait extra for frontend render
+        run: sleep 20
+
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         working-directory: frontend
         run: |
