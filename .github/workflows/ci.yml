@@ -64,6 +64,20 @@ jobs:
       - name: Install Playwright deps
         run: npx playwright install --with-deps
 
+      - name: Start local blockchain node
+        working-directory: blockchain
+        run: |
+          npm ci
+          npx hardhat node &
+          npx wait-on tcp:8545
+
+      - name: Start backend server
+        working-directory: backend
+        run: |
+          npm ci
+          npm run start &
+          npx wait-on http://localhost:3000
+
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         run: |
           xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npx synpress
