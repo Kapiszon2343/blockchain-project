@@ -76,7 +76,7 @@ jobs:
         run: |
           npm ci
           npm run start &
-          npx wait-on http://localhost:3000
+          npx wait-on http://localhost:3001
 
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         run: |
