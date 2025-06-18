@@ -8,7 +8,7 @@ import hre from "hardhat";
 import * as secp from '@noble/secp256k1';
 import { sign } from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha256";
-import { hexlify } from "ethers";
+import { BigNumberish, hexlify } from "ethers";
 
 describe("Publishing", function () {
   function getTextHash(message: string): Uint8Array {
@@ -119,7 +119,109 @@ describe("Publishing", function () {
       }
     });
 
+    it("New chapter checks for owner", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
 
+      for (let i = 0; i < chapterContent1.length; i++) {
+        const hash = getTextHash(chapterContent1[0][i])
+        await expect(contract.connect(other2).publishChapter(tokenId[0], i, hash))
+          .to.be.revertedWith("You don't have acces to this token");
+      }
+    });
+
+    it("New chapter can use approval", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      expect(await contract.connect(other1).approve(other2, tokenId[0]))
+        .to.emit(contract, "Approval")
+        .withArgs(other2, other1, tokenId);
+
+      for (let i = 0; i < chapterContent1.length; i++) {
+        const hash = getTextHash(chapterContent1[0][i])
+        expect(await contract.connect(other2).publishChapter(tokenId[0], i, hash))
+          .to.emit(contract, 'NewChapter')
+          .withArgs(tokenId[0], i, hash);
+      }
+    });
   })
+
+  describe("Transfer", function () {
+    it("Transfer from owner", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+  
+      // Transfer 200 tokens from owner to addr1
+      expect(await contract.connect(other1).transferFrom(other1.address, other2.address, tokenId[0]))
+        .to.emit(contract, "Transfer")
+        .withArgs(other1, other2, tokenId[0]);
+      expect(await contract.balanceOf(other2.address)).to.equal(1);
+    });
+
+    it("Transfer only from owner", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other1).transferFrom(other2.address, owner, tokenId[0]))
+        .to.be.revertedWith("Wrong token owner");
+    });
+
+    it("Only owner can transfer", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other2).transferFrom(other1.address, owner, tokenId[0]))
+        .to.be.revertedWith("Sender is not approved to transfer this token");
+    });
+  });
+
+  describe("Allowance", function () {
+    it("Give allow all", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      const val = 1000;
+
+      expect(await contract.setApprovalForAll(other1, true))
+        .to.emit(contract, "ApprovalForAll")
+        .withArgs(owner, other1, true);
+      expect(await contract.isApprovedForAll(owner, other1)).to.equal(true);
+    }); 
+
+    it("Trasfer with allow all", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      const val = 1000;
+
+      expect(await contract.connect(other1).setApprovalForAll(other2, true))
+        .to.emit(contract, "ApprovalForAll")
+        .withArgs(other1, other2, true);
+      expect(await contract.isApprovedForAll(other1, other2)).to.equal(true);
+
+      expect(await contract.connect(other2).transferFrom(other1, other2, tokenId[0]))
+        .to.emit(contract, "Transfer")
+        .withArgs(other1, other2, tokenId[0]);
+      expect(await contract.balanceOf(other1)).to.equal(tokenId.length-1);
+      expect(await contract.balanceOf(other2)).to.equal(1);
+    }); 
+
+    it("Give token allowance", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      const val = 1000;
+
+      expect(await contract.connect(other1).approve(owner.address, tokenId[0]))
+        .to.emit(contract, "Approval")
+        .withArgs(other1, owner, tokenId[0]);
+      expect(await contract.getApproved(tokenId[0])).to.equal(owner.address);
+    }); 
+
+    it("Trasfer with allow all", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      const val = 1000;
+
+      expect(await contract.connect(other1).approve(other2.address, tokenId[0]))
+        .to.emit(contract, "Approval")
+        .withArgs(other1, other2, tokenId[0]);
+      expect(await contract.getApproved(tokenId[0])).to.equal(other2.address);
+
+      expect(await contract.connect(other2).transferFrom(other1, other2, tokenId[0]))
+        .to.emit(contract, "Transfer")
+        .withArgs(other1, other2, tokenId[0]);
+      expect(await contract.balanceOf(other1)).to.equal(tokenId.length-1);
+      expect(await contract.balanceOf(other2)).to.equal(1);
+    }); 
+  });
 
 });

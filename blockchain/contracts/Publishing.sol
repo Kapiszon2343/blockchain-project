@@ -231,7 +231,7 @@ contract Publishing is IERC721 {
     ) external {
         require(_tokenOwner[tokenId] == msg.sender
             || _accountApproval[_tokenOwner[tokenId]][msg.sender]
-            || _tokenApproval[tokenId] == msg.sender); 
+            || _tokenApproval[tokenId] == msg.sender, "You don't have acces to this token"); 
 
         chapterHash[tokenId][chapterId] = hash;
         chapterTimestamp[tokenId][chapterId] = block.timestamp;
