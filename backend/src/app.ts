@@ -13,6 +13,9 @@ interface PublishRequest {
   authorPublicKey: string
 }
 
+app.get('/', (req, res) => {
+  res.send('OK');
+});
 app.post('/publish', (req: Request, res: Response) => {
   const { tokenId, title } = req.body as PublishRequest
   console.log("Adding to db: ", req.body);
