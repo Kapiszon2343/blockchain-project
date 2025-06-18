@@ -54,6 +54,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      
+      - name: Install window manager
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb fluxbox
 
       - name: Install frontend deps
         working-directory: frontend
@@ -95,8 +100,10 @@ jobs:
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         working-directory: frontend
         run: |
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npx synpress
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npx playwright test
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
+            fluxbox &
+            npx synpress
+            npx playwright test
 
       - name: Upload Playwright Report
         if: always()
