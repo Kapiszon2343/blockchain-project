@@ -82,7 +82,7 @@ jobs:
           npx hardhat node &
 
       - name: Wait for backend and blockchain
-        run: npx wait-on --timeout 60000 http://127.0.0.1:3001 tcp:127.0.0.1:8545
+        run: npx wait-on --timeout 60000 --httpTimeout 10000 --verbose http-get://127.0.0.1:3001 tcp:127.0.0.1:8545
 
       - name: Run frontend (Synpress & Playwright) tests with xvfb
         working-directory: frontend
