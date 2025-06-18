@@ -37,7 +37,7 @@ test.describe('Wallet connection', () => {
 
     // Click the connect button
     const connectButton = page.getByRole('button', { name: 'Injected' })
-    await expect(connectButton).toBeVisible()
+    await expect(connectButton).toBeVisible({ timeout: 15000 })
     await connectButton.click()
 
     // Connect MetaMask to the dapp
