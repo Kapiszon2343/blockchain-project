@@ -29,16 +29,8 @@ contract Publishing is IERC721 {
     mapping(uint256 => mapping(uint64 => bytes)) public chapterHash;
     mapping(uint256 => mapping(uint64 => uint256)) public chapterTimestamp;
 
-    event Publish(
-        address owner, 
-        uint256 tokenId, 
-        string title
-    );
-    event NewChapter(
-        uint256 tokenId,
-        uint64 chapterId,
-        bytes hash
-    );
+    event Publish(address owner, uint256 tokenId, string title);
+    event NewChapter(uint256 tokenId, uint64 chapterId, bytes hash);
 
     constructor() {
         // The totalSupply is assigned to the transaction sender, which is the
@@ -91,11 +83,23 @@ contract Publishing is IERC721 {
         );
 
         if (to.code.length > 0) {
-            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, data) returns (bytes4 retval) {
-                require(retval == IERC721Receiver.onERC721Received.selector, "ERC721: recipient contract did not accept the token");
+            try
+                IERC721Receiver(to).onERC721Received(
+                    msg.sender,
+                    from,
+                    tokenId,
+                    data
+                )
+            returns (bytes4 retval) {
+                require(
+                    retval == IERC721Receiver.onERC721Received.selector,
+                    "ERC721: recipient contract did not accept the token"
+                );
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert("ERC721: transfer to non ERC721Receiver implementer");
+                    revert(
+                        "ERC721: transfer to non ERC721Receiver implementer"
+                    );
                 } else {
                     /// @solidity memory-safe-assembly
                     assembly {
@@ -129,11 +133,23 @@ contract Publishing is IERC721 {
         );
 
         if (to.code.length > 0) {
-            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, "") returns (bytes4 retval) {
-                require(retval == IERC721Receiver.onERC721Received.selector, "ERC721: recipient contract did not accept the token");
+            try
+                IERC721Receiver(to).onERC721Received(
+                    msg.sender,
+                    from,
+                    tokenId,
+                    ""
+                )
+            returns (bytes4 retval) {
+                require(
+                    retval == IERC721Receiver.onERC721Received.selector,
+                    "ERC721: recipient contract did not accept the token"
+                );
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert("ERC721: transfer to non ERC721Receiver implementer");
+                    revert(
+                        "ERC721: transfer to non ERC721Receiver implementer"
+                    );
                 } else {
                     /// @solidity memory-safe-assembly
                     assembly {
@@ -229,9 +245,12 @@ contract Publishing is IERC721 {
         uint64 chapterId,
         bytes calldata hash
     ) external {
-        require(_tokenOwner[tokenId] == msg.sender
-            || _accountApproval[_tokenOwner[tokenId]][msg.sender]
-            || _tokenApproval[tokenId] == msg.sender, "You don't have acces to this token"); 
+        require(
+            _tokenOwner[tokenId] == msg.sender ||
+                _accountApproval[_tokenOwner[tokenId]][msg.sender] ||
+                _tokenApproval[tokenId] == msg.sender,
+            "You don't have acces to this token"
+        );
 
         chapterHash[tokenId][chapterId] = hash;
         chapterTimestamp[tokenId][chapterId] = block.timestamp;

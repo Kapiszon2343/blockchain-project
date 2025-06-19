@@ -51,6 +51,26 @@ describe("Publishing", function () {
 
       expect(await contract.isApprovedForAll(owner, other1)).to.equal(false);
     });
+
+    it("Wrong token throws", async function (){
+      const { contract, owner, other1, other2 } = await loadFixture(deployFreshContract);
+
+      await expect(contract.ownerOf(2))
+        .to.be.revertedWith("Token with this Id doesn't exist");
+    });
+
+    it("should support IERC721 interface", async function () {
+      const { contract, owner, other1, other2 } = await loadFixture(deployFreshContract);
+      // IERC721 interface ID = 0x80ac58cd (from EIP-165 spec)
+      const IERC721_ID = "0x80ac58cd";
+      expect(await contract.supportsInterface(IERC721_ID)).to.equal(true);
+    });
+
+    it("should not support random interface", async function () {
+      const { contract, owner, other1, other2 } = await loadFixture(deployFreshContract);
+      const fakeInterfaceId = "0x12345678";
+      expect(await contract.supportsInterface(fakeInterfaceId)).to.equal(false);
+    });
   });
 
   const titles1 = ['title1'];
@@ -133,11 +153,39 @@ describe("Publishing", function () {
       const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
       expect(await contract.connect(other1).approve(other2, tokenId[0]))
         .to.emit(contract, "Approval")
-        .withArgs(other2, other1, tokenId);
+        .withArgs(other2, other1, tokenId[0]);
 
       for (let i = 0; i < chapterContent1.length; i++) {
         const hash = getTextHash(chapterContent1[0][i])
         expect(await contract.connect(other2).publishChapter(tokenId[0], i, hash))
+          .to.emit(contract, 'NewChapter')
+          .withArgs(tokenId[0], i, hash);
+      }
+    });
+
+    it("New chapter can use approve all", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      expect(await contract.connect(other1).setApprovalForAll(other2, true))
+        .to.emit(contract, "ApprovalForAll")
+        .withArgs(other2, other1, true);
+
+      for (let i = 0; i < chapterContent1.length; i++) {
+        const hash = getTextHash(chapterContent1[0][i])
+        expect(await contract.connect(other2).publishChapter(tokenId[0], i, hash))
+          .to.emit(contract, 'NewChapter')
+          .withArgs(tokenId[0], i, hash);
+      }
+    });
+
+    it("New chapter works after giving approval", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+      expect(await contract.connect(other1).approve(other2, tokenId[0]))
+        .to.emit(contract, "Approval")
+        .withArgs(other2, other1, tokenId[0]);
+
+      for (let i = 0; i < chapterContent1.length; i++) {
+        const hash = getTextHash(chapterContent1[0][i])
+        expect(await contract.connect(other1).publishChapter(tokenId[0], i, hash))
           .to.emit(contract, 'NewChapter')
           .withArgs(tokenId[0], i, hash);
       }
@@ -168,12 +216,56 @@ describe("Publishing", function () {
       await expect(contract.connect(other2).transferFrom(other1.address, owner, tokenId[0]))
         .to.be.revertedWith("Sender is not approved to transfer this token");
     });
+
+    it("Safe transfer from owner", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+  
+      // Transfer 200 tokens from owner to addr1
+      expect(await contract.connect(other1).safeTransferFrom(other1.address, other2.address, tokenId[0]))
+        .to.emit(contract, "Transfer")
+        .withArgs(other1, other2, tokenId[0]);
+      expect(await contract.balanceOf(other2.address)).to.equal(1);
+    });
+
+    it("Safe transfer only from owner", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other1).safeTransferFrom(other2.address, owner, tokenId[0]))
+        .to.be.revertedWith("Wrong token owner");
+    });
+
+    it("Only owner can safe transfer", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other2).safeTransferFrom(other1.address, owner, tokenId[0]))
+        .to.be.revertedWith("Sender is not approved to transfer this token");
+    });
   });
 
   describe("Allowance", function () {
+    it("Wrong tokenId reverts", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other1).approve(owner.address, 6969))
+        .to.be.revertedWith("Token with this Id doesn't exist")
+    })
+
+    it("Only owner can approve", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.connect(other2).approve(owner.address, tokenId[0]))
+        .to.be.revertedWith("This is not your token")
+    })
+
+    it("Only owner can approve", async function () {
+      const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
+
+      await expect(contract.getApproved(6969))
+        .to.be.revertedWith("Token with this Id doesn't exist")
+    })
+
     it("Give allow all", async function () {
       const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
-      const val = 1000;
 
       expect(await contract.setApprovalForAll(other1, true))
         .to.emit(contract, "ApprovalForAll")
@@ -183,7 +275,6 @@ describe("Publishing", function () {
 
     it("Trasfer with allow all", async function () {
       const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
-      const val = 1000;
 
       expect(await contract.connect(other1).setApprovalForAll(other2, true))
         .to.emit(contract, "ApprovalForAll")
@@ -199,7 +290,6 @@ describe("Publishing", function () {
 
     it("Give token allowance", async function () {
       const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
-      const val = 1000;
 
       expect(await contract.connect(other1).approve(owner.address, tokenId[0]))
         .to.emit(contract, "Approval")
@@ -207,9 +297,8 @@ describe("Publishing", function () {
       expect(await contract.getApproved(tokenId[0])).to.equal(owner.address);
     }); 
 
-    it("Trasfer with allow all", async function () {
+    it("Trasfer with token aloowance", async function () {
       const { contract, tokenId, owner, other1, other2 } = await deployFreshContractWithPublishing();
-      const val = 1000;
 
       expect(await contract.connect(other1).approve(other2.address, tokenId[0]))
         .to.emit(contract, "Approval")
