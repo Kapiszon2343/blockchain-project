@@ -2,9 +2,16 @@ name: Full CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'feature/**'
+      - work
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - 'feature/**'
+      - work
+
 
 jobs:
   test-backend:
