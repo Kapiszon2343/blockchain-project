@@ -1,16 +1,8 @@
-import { useEffect, useState } from 'react'
 import { type BaseError, 
-  useReadContract, 
   useWriteContract, 
   useWaitForTransactionReceipt,
-  useBlockNumber,
-  useAccount,
-  usePublicClient,
   } from 'wagmi'
-import { config } from './wagmi'
-import { getWalletClient } from '@wagmi/core'
 import { wagmiContractConfig } from './contracts'
-import { parseAbiItem } from 'viem'
 import { type WriteContractParameters } from 'wagmi/actions'
 
 import { hexlify } from "ethers";
