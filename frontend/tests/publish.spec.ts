@@ -116,4 +116,33 @@ test.describe('Wallet connection', () => {
     const titleRegex = new RegExp(`${title}\\s+—\\s+Chapter\\s+\\d+\\s+\\(Token ID: \\d+\\)`)
     await expect(page.getByText(titleRegex).first()).toBeVisible({ timeout: 10000 })
   })
+
+  test('No plagiarism', async ({
+    context,
+    page,
+    metamaskPage,
+    extensionId,
+  }) => {
+    test.setTimeout(120_000)
+    // Create a new MetaMask instance
+    const metamask = new MetaMask(
+      context,
+      metamaskPage,
+      basicSetup.walletPassword,
+      extensionId
+    )
+
+    // Navigate to the homepage
+    await page.goto('/')
+    await page.waitForTimeout(10000);
+
+    await page.getByRole('link', { name: 'Check existing text' }).click()
+    await expect(page).toHaveURL(/.*\/Check/)
+
+    await page.getByPlaceholder('content to check').fill('nothing')
+
+    await page.getByRole('button', { name: 'Check for plagiarism' }).click()
+
+    await expect(page.getByText('No significant similarities found.')).toBeVisible({ timeout: 10_000 })
+  })
 })
