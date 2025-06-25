@@ -103,3 +103,31 @@ textarea.textarea-large {
   margin-bottom: 1rem;
   font-family: inherit;
 }
+
+.app-container {
+  text-align: center;
+  margin-top: 50px;
+  font-family: sans-serif;
+}
+
+.link-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.link-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+.link-btn:hover {
+  background-color: #45a049;
+}

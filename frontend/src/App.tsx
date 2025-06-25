@@ -45,7 +45,7 @@ function App() {
         <div>{error?.message}</div>
       </div>
 
-      <div>
+      <div className='app-container'>
         <Router>
           <Routes>
             <Route path="/" element={<Home />}/>
