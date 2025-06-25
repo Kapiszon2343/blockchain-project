@@ -39,6 +39,7 @@ flowchart TD
     Dummy:::hidden
     Publish -- Publikacja utworu --> Publishing
     Update -- Update utworu --> Publishing
+    Publish -- Aktualizacja danych publikacji --> Baza
     Publishing -- Aktualizacja danych publikacji --> Baza
     Publishing <-- Weryfikacja unikalności przy aktualizacji danych --> Antyplagiat
     Check -- Sprawdź, czy dana treść została już opublikowana --> Antyplagiat
@@ -75,7 +76,7 @@ direction RL
             +mapping[uint256 => mapping[uint64 => uint256]] chapterTimestamp 
 
             +publish(string title, bytes authorPublicKey) returns (uint256 tokenId)
-            +publishChapter(uint256 tokenId, uint64 chapterId, bytes hash, bytes signature)
+            +publishChapter(uint256 tokenId, uint64 chapterId, bytes hash)
         }
 
 	}
