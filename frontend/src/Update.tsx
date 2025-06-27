@@ -1,6 +1,7 @@
 import { type BaseError, 
   useWriteContract, 
   useWaitForTransactionReceipt,
+  useAccount,
   } from 'wagmi'
 import { wagmiContractConfig } from './contracts'
 import { type WriteContractParameters } from 'wagmi/actions'
@@ -27,6 +28,13 @@ export function Update() {
       hash,
     })
 
+  const { chain } = useAccount ()
+  const chainId = chain?.id ?? 11155111
+
+  const contractConfig = wagmiContractConfig[chainId]
+  if (!contractConfig) {
+    throw new Error(`No contract config found for chainId ${chainId}`)
+  }
 
   async function callNewChapter(e: React.FormEvent<HTMLFormElement>) { 
     e.preventDefault() 
@@ -43,7 +51,7 @@ export function Update() {
     const hashString = await hashContent(content)
 
     writeContract({
-      ...wagmiContractConfig,
+      ...contractConfig,
       functionName: 'publishChapter',
       args: [tokenId, BigInt(chapterId), hashString],
     } as WriteContractParameters)
