@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,36 +27,24 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install blockchain deps
+      - name: Compile smart contracts
         working-directory: blockchain
-        run: npm ci
+        run: |
+          npm ci
+          npx hardhat compile
 
-      - name: Compile contracts
-        working-directory: blockchain
-        run: npx hardhat compile
-
-      - name: Install frontend deps
+      - name: Install and build frontend
         working-directory: frontend
-        run: npm ci
+        run: |
+          npm ci
+          npm run build
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
-      - name: Upload GitHub Pages artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
           path: frontend/dist
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
