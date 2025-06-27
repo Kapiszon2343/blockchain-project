@@ -27,6 +27,14 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install blockchain deps
+        working-directory: blockchain
+        run: npm ci
+
+      - name: Compile contracts
+        working-directory: blockchain
+        run: npx hardhat compile
+
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
