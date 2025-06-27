@@ -15,7 +15,10 @@ export function Publish() {
   const { chain } = useAccount ()
   const chainId = chain?.id ?? 11155111
 
-  const contractConfig = wagmiContractConfig[chainId]
+  if (!(chainId in wagmiContractConfig)) {
+    throw new Error(`No contract config for chainId ${chainId}`);
+  }
+  const contractConfig = wagmiContractConfig[chainId as keyof typeof wagmiContractConfig];
   if (!contractConfig) {
     throw new Error(`No contract config found for chainId ${chainId}`)
   }
