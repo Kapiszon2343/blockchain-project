@@ -14,7 +14,7 @@ test.describe('Wallet connection', () => {
     await page.goto('http://localhost:5173/');
 
     // Expect a title "to contain" a substring.
-    await expect(page).toHaveTitle(/Create Wagmi/);
+    await expect(page).toHaveTitle(/Decentralized Copyright Control/);
   });
   // Define a basic test case
   test('Whole interaction', async ({
