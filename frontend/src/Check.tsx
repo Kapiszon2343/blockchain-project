@@ -44,17 +44,18 @@ export function Check() {
     <div>
 
       <form onSubmit={callCheck}>
-        <input 
-          type="text"
-          name="content" 
-          placeholder="content to check" 
-          required 
-        />
         <button 
           type="submit"
         >
           Check for plagiarism
         </button>
+        <textarea 
+          name="content" 
+          placeholder="content to check" 
+          required 
+          rows={10}
+          className="textarea-large"
+        />
         
       </form>
         

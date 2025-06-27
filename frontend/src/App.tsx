@@ -45,10 +45,11 @@ function App() {
         <div>{error?.message}</div>
       </div>
 
-      <div>
+      <div className='app-container'>
         <Router>
           <Routes>
             <Route path="/" element={<Home />}/>
+            <Route path="/blockchain-project" element={<Home />}/>
             <Route path="/Publish" element={<Publish />}/>
             <Route path="/Update" element={<Update />}/>
             <Route path="/Check" element={<Check />}/>

@@ -1,27 +1,34 @@
 import { useEffect, useState } from 'react'
 import { type BaseError, 
-  useReadContract, 
   useWriteContract, 
   useWaitForTransactionReceipt,
-  useBlockNumber,
-  useAccount,
   usePublicClient,
+  useAccount ,
   } from 'wagmi'
-import { config } from './wagmi'
-import { getWalletClient } from '@wagmi/core'
 import { wagmiContractConfig } from './contracts'
 import { parseAbiItem } from 'viem'
 import { type WriteContractParameters } from 'wagmi/actions'
 
 export function Publish() {
+  const publicClient = usePublicClient()
+  const [mintedTokenId, setMintedTokenId] = useState<bigint | null>(null)
+  const { chain } = useAccount ()
+  const chainId = chain?.id ?? 11155111
+
+  if (!(chainId in wagmiContractConfig)) {
+    throw new Error(`No contract config for chainId ${chainId}`);
+  }
+  const contractConfig = wagmiContractConfig[chainId as keyof typeof wagmiContractConfig];
+  if (!contractConfig) {
+    throw new Error(`No contract config found for chainId ${chainId}`)
+  }
   const { data: hash, error: errorWrite, isPending: isPendingWrite, writeContract } = useWriteContract()
   const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     })
 
-  const publicClient = usePublicClient()
-  const [mintedTokenId, setMintedTokenId] = useState<bigint | null>(null)
+  
   useEffect(() => {
     async function getLogs() {
       if (!receipt) return
@@ -34,7 +41,7 @@ export function Publish() {
       try {
         console.log("Getting logs from block:", receipt.blockNumber)
         const logs = await publicClient.getLogs({
-          address: wagmiContractConfig.address,
+          address: contractConfig.address,
           fromBlock: receipt.blockNumber,
           toBlock: receipt.blockNumber,
           event: parseAbiItem(
@@ -92,8 +99,9 @@ export function Publish() {
     const formData = new FormData(e.target as HTMLFormElement) 
     const title = formData.get('title') as string 
 
+    console.log(contractConfig)
     writeContract({
-      ...wagmiContractConfig,
+      ...contractConfig,
       functionName: 'publish',
       args: [title],
     } as WriteContractParameters)
@@ -122,7 +130,10 @@ export function Publish() {
       {isConfirming && <div>Waiting for confirmation...</div>}
       {(isConfirmed && mintedTokenId === null) && <div>Publishing succesfull! Please wait for token id</div>}
       {(isConfirmed && mintedTokenId !== null) && <div>Publishing succesfull! Your token id is: {mintedTokenId.toString()}</div>}
-      {errorWrite && (<div>Error: {(errorWrite as BaseError).shortMessage}</div>)}
+      {errorWrite && (<>
+        <div>Error: {(errorWrite as BaseError).shortMessage || (errorWrite as Error).message || 'Unknown error'}</div>
+        <pre>{JSON.stringify(errorWrite, null, 2)}</pre>
+      </>)}
     </div>
   )
 }

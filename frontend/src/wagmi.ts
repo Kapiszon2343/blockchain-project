@@ -32,7 +32,7 @@ export const config = createConfig({
   ],
   transports: {
     [mainnet.id]: http(),
-    [sepolia.id]: http(),
+    [sepolia.id]: http(import.meta.env.VITE_SEPOLIA_RPC_URL!),
     [hardhatCustom.id]: http('http://127.0.0.1:8545'),
   },
 })

@@ -1,16 +1,9 @@
-import { useEffect, useState } from 'react'
 import { type BaseError, 
-  useReadContract, 
   useWriteContract, 
   useWaitForTransactionReceipt,
-  useBlockNumber,
   useAccount,
-  usePublicClient,
   } from 'wagmi'
-import { config } from './wagmi'
-import { getWalletClient } from '@wagmi/core'
 import { wagmiContractConfig } from './contracts'
-import { parseAbiItem } from 'viem'
 import { type WriteContractParameters } from 'wagmi/actions'
 
 import { hexlify } from "ethers";
@@ -35,6 +28,16 @@ export function Update() {
       hash,
     })
 
+  const { chain } = useAccount ()
+  const chainId = chain?.id ?? 11155111
+
+  if (!(chainId in wagmiContractConfig)) {
+    throw new Error(`No contract config for chainId ${chainId}`);
+  }
+  const contractConfig = wagmiContractConfig[chainId as keyof typeof wagmiContractConfig];
+  if (!contractConfig) {
+    throw new Error(`No contract config found for chainId ${chainId}`)
+  }
 
   async function callNewChapter(e: React.FormEvent<HTMLFormElement>) { 
     e.preventDefault() 
@@ -51,7 +54,7 @@ export function Update() {
     const hashString = await hashContent(content)
 
     writeContract({
-      ...wagmiContractConfig,
+      ...contractConfig,
       functionName: 'publishChapter',
       args: [tokenId, BigInt(chapterId), hashString],
     } as WriteContractParameters)
