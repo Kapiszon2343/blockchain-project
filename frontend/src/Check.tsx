@@ -49,6 +49,7 @@ export function Check() {
         >
           Check for plagiarism
         </button>
+        <br/>
         <textarea 
           name="content" 
           placeholder="content to check" 

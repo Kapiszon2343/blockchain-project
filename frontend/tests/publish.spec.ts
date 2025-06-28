@@ -47,7 +47,7 @@ test.describe('Wallet connection', () => {
     await expect(page.locator('text=status: connected')).toBeVisible();
 
     // Click link to publish
-    await page.getByRole('link', { name: 'Publish new story' }).click()
+    await page.getByRole('link', { name: 'Publish new works' }).click()
     await expect(page).toHaveURL(/.*\/Publish/)
 
     // Fill in the title field
@@ -77,7 +77,7 @@ test.describe('Wallet connection', () => {
     await page.goto('/')
 
     // Click link to update
-    await page.getByRole('link', { name: 'Expand your story with new chapters' }).click()
+    await page.getByRole('link', { name: 'Add new chapters' }).click()
     await expect(page).toHaveURL(/.*\/Update/)
 
     // Fill in chapter details
@@ -101,7 +101,7 @@ test.describe('Wallet connection', () => {
     await page.goto('/')
 
     // Click link to check
-    await page.getByRole('link', { name: 'Check existing text' }).click()
+    await page.getByRole('link', { name: 'Check for duplicates' }).click()
     await expect(page).toHaveURL(/.*\/Check/)
 
     // Fill in chapter details
@@ -136,7 +136,7 @@ test.describe('Wallet connection', () => {
     await page.goto('/')
     await page.waitForTimeout(10000);
 
-    await page.getByRole('link', { name: 'Check existing text' }).click()
+    await page.getByRole('link', { name: 'Check for duplicates' }).click()
     await expect(page).toHaveURL(/.*\/Check/)
 
     await page.getByPlaceholder('content to check').fill('nothing')
