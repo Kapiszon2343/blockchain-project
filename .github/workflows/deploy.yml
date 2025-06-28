@@ -2,8 +2,7 @@ name: Deploy frontend to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: read
@@ -17,14 +16,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      artifact_name: ${{ steps.upload.outputs.artifact_name }}
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -44,8 +39,7 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Upload GitHub Pages artifact
-        id: upload
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist
@@ -57,6 +51,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - uses: actions/deploy-pages@v2
         id: deployment
-        uses: actions/deploy-pages@v2
